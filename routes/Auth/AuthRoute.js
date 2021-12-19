@@ -5,6 +5,8 @@ const {
   LoginController,
   RegisterController,
   activationController,
+  forgetPasswordController,
+  resetPassword,
 } = require("../../controllers/AuthController");
 
 router.post("/login", LoginController);
@@ -35,4 +37,16 @@ router.post(
   ],
   LoginController
 );
+
+router.put(
+  "/forgot-password",
+  [
+    check("email", "Email is empty!!").notEmpty(),
+    check("email", "Invalid email!!").isEmail(),
+  ],
+  forgetPasswordController
+);
+
+router.put("/password/reset", resetPassword);
+
 module.exports = router;

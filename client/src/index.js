@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Activate from "./screens/Activate";
 import Login from "./screens/Login";
 import ForgetPassword from "./screens/ForgetPassword";
+import ResetPassword from "./screens/ResetPassword";
 ReactDOM.render(
   <Router>
     <ToastContainer />
@@ -25,7 +26,15 @@ ReactDOM.render(
         render={(props) => <Activate {...props} />}
       />
       <Route exact path="/Login" render={(props) => <Login {...props} />} />
-      <Route exact path="/forget/password" render={(props) => <ForgetPassword {...props} />} />
+      <Route
+        exact
+        path="/users/forget/password"
+        render={(props) => <ForgetPassword {...props} />}
+      />
+      <Route
+        path="/users/password/reset/:token"
+        render={(props) => <ResetPassword {...props} />}
+      />
     </Switch>
   </Router>,
   document.getElementById("root")
