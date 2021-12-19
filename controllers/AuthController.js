@@ -343,7 +343,89 @@ const resetPassword=async(req,res)=>{
       error: error.message,
     });
   }
-  
+}
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLoginController=async(req,res)=>{
+  try {
+    const { idToken } = req.body;
+    //get the token from the request
+    //verify the token
+    client
+      .verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
+      .then((response) => {
+        const { email_verified, email, name,picture } = response.payload;
+        if (email_verified) {
+           UserModel.findOne({ email: email }).exec((err, user) => {
+            //find if the email already exists
+            if (user) {
+              const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+                expiresIn: "7d",
+              });
+              let { name, _id, email, role, time, createdAt } =
+                user;
+              let sendUser = {
+                name: name,
+                id: _id,
+                email: email,
+                role: role,
+                mobile: user.mobile?user.mobile:"",
+                avater: picture,
+                time: time,
+                createdAt: createdAt,
+              };
+
+              //sending response to client side with token and user
+              return res.status(200).json({
+                token: token,
+                user: sendUser,
+              });
+            } else {
+              //user doesnot exist then we will generate a password for them and let the login
+              const avater = gravatar.url(email, {
+                s: "",
+                r: "",
+                d: "",
+              });
+              let password= email;
+              bycrypt.hash(password, 11, async (err, hashedPassword) => {
+                if (err) {
+                  res.json(err);
+                }
+                const user = new UserModel({
+                  name,
+                  email,
+                  mobile:"",
+                  password: hashedPassword,
+                  avater: picture,
+                });
+                await user.save((err, userData) => {
+                  if(err){
+                    return res.status(400).json({
+                      error:err.message
+                    })
+                  }else{
+                    const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+                      expiresIn: "7d",
+                    });
+                    return res.status(200).json({
+                      token: token,
+                      user: userData,
+                    });
+                  }
+                });
+                
+              });
+            }
+          });
+        }
+      });
+  } catch (error) {
+    return res.status(500).json({
+      error:error.message
+    })
+  }
 }
 
 module.exports = {
@@ -352,4 +434,5 @@ module.exports = {
   RegisterController,
   forgetPasswordController,
   resetPassword,
+  googleLoginController,
 };

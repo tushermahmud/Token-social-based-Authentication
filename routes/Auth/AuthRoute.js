@@ -7,6 +7,7 @@ const {
   activationController,
   forgetPasswordController,
   resetPassword,
+  googleLoginController,
 } = require("../../controllers/AuthController");
 
 router.post("/login", LoginController);
@@ -48,5 +49,7 @@ router.put(
 );
 
 router.put("/password/reset", resetPassword);
+
+router.post("/google-login",googleLoginController)
 
 module.exports = router;

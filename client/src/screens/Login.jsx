@@ -18,50 +18,50 @@ const Login = ({ history }) => {
         setFormData({ ...formData, [text]: e.target.value });
     };
 
-    // const sendGoogleToken = tokenId => {
-    //     axios
-    //         .post(`${process.env.REACT_APP_API_URL}/googlelogin`, {
-    //             idToken: tokenId
-    //         })
-    //         .then(res => {
-    //             console.log(res.data);
-    //             informParent(res);
-    //         })
-    //         .catch(error => {
-    //             console.log('GOOGLE SIGNIN ERROR', error.response);
-    //         });
-    // };
-    // const informParent = response => {
-    //     authenticate(response, () => {
-    //         isAuth() && isAuth().role === 'admin'
-    //             ? history.push('/admin')
-    //             : history.push('/private');
-    //     });
-    // };
+    const sendGoogleToken = tokenId => {
+        axios
+            .post(`${process.env.REACT_APP_API_URL}/auth/google-login`, {
+                idToken: tokenId
+            })
+            .then(res => {
+                console.log(res.data);
+                informParent(res);
+            })
+            .catch(error => {
+                console.log('GOOGLE SIGNIN ERROR', error.response);
+            });
+    };
+    const informParent = response => {
+        authenticate(response, () => {
+            isAuth() && isAuth().role === 'admin'
+                ? history.push('/admin')
+                : history.push('/private');
+        });
+    };
 
-    // const sendFacebookToken = (userID, accessToken) => {
-    //     axios
-    //         .post(`${process.env.REACT_APP_API_URL}/facebooklogin`, {
-    //             userID,
-    //             accessToken
-    //         })
-    //         .then(res => {
-    //             console.log(res.data);
-    //             informParent(res);
-    //         })
-    //         .catch(error => {
-    //             console.log('GOOGLE SIGNIN ERROR', error.response);
-    //         });
-    // };
-    // const responseGoogle = response => {
-    //     console.log(response);
-    //     sendGoogleToken(response.tokenId);
-    // };
+    const sendFacebookToken = (userID, accessToken) => {
+        axios
+            .post(`${process.env.REACT_APP_API_URL}/facebooklogin`, {
+                userID,
+                accessToken
+            })
+            .then(res => {
+                console.log(res.data);
+                informParent(res);
+            })
+            .catch(error => {
+                console.log('GOOGLE SIGNIN ERROR', error.response);
+            });
+    };
+    const responseGoogle = response => {
+        console.log(response);
+        sendGoogleToken(response.tokenId);
+    };
 
-    // const responseFacebook = response => {
-    //     console.log(response);
-    //     sendFacebookToken(response.userID, response.accessToken)
-    // };
+    const responseFacebook = response => {
+        console.log(response);
+        sendFacebookToken(response.userID, response.accessToken)
+    };
 
     const handleSubmit = e => {
         e.preventDefault();
@@ -112,7 +112,7 @@ const Login = ({ history }) => {
                         </h1>
                         <div className='w-full flex-1 mt-8 text-indigo-500'>
                             <div className='flex flex-col items-center'>
-                                {/* <GoogleLogin
+                                <GoogleLogin
                                     clientId={`${process.env.REACT_APP_GOOGLE_CLIENT}`}
                                     onSuccess={responseGoogle}
                                     onFailure={responseGoogle}
@@ -145,7 +145,7 @@ const Login = ({ history }) => {
                                             <span className='ml-4'>Sign In with Facebook</span>
                                         </button>
                                     )}
-                                /> */}
+                                />
 
                                 <a
                                     className='w-full max-w-xs font-bold shadow-sm rounded-lg py-3
