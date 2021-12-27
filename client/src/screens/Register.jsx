@@ -5,65 +5,31 @@ import axios from 'axios';
 import { authenticate, isAuth } from '../helpers/auth';
 import { Link, Redirect } from 'react-router-dom';
 import { useEffect } from 'react';
-
-const Register = () => {
+import {connect} from "react-redux";
+import { register } from '../redux/actions/authAction';
+const Register = ({register}) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password1: '',
+    password: '',
     password2: '',
     mobile: "",
     textChange: 'Sign Up'
   });
-  useEffect(() => {
-    console.log(process.env)
-  }, [])
+  // useEffect(() => {
+  //   console.log(process.env)
+  // }, [])
   console.log("tusher")
-  const { name, email, password1, password2, textChange, mobile } = formData;
+  const { name, email, password, password2, textChange, mobile } = formData;
   const handleChange = text => e => {
     setFormData({ ...formData, [text]: e.target.value });
   };
   const handleSubmit = e => {
     e.preventDefault();
-    if (name && email && password1) {
-      if (password1 === password2) {
+    if (name && email && password) {
+      if (password === password2) {
         setFormData({ ...formData, textChange: 'Submitting' });
-        axios
-          .post(`${process.env.REACT_APP_API_URL}/auth/register`, {
-            name,
-            email,
-            password: password1,
-            mobile: mobile
-          })
-          .then(res => {
-            setFormData({
-              ...formData,
-              name: '',
-              email: '',
-              password1: '',
-              password2: '',
-              mobile: '',
-              textChange: 'Submitted'
-            });
-
-            toast.success(res.data.message);
-          })
-          .catch(err => {
-            setFormData({
-              ...formData,
-              name: '',
-              email: '',
-              password1: '',
-              password2: '',
-              mobile:'',
-              textChange: 'Sign Up'
-            });
-            if (err.response.data.errors){
-              toast.error(err.response.data.errors);
-            }else{
-              toast.error(err.response.data.error);
-            }
-          });
+        register(formData);
       } else {
         toast.error("Passwords don't matches");
       }
@@ -105,8 +71,8 @@ const Register = () => {
                   className='w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5'
                   type='password'
                   placeholder='Password'
-                  onChange={handleChange('password1')}
-                  value={password1}
+                  onChange={handleChange('password')}
+                  value={password}
                 />
                 <input
                   className='w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5'
@@ -156,9 +122,12 @@ const Register = () => {
           ></div>
         </div>
       </div>
-      ;
     </div>
   );
 };
 
-export default Register;
+const mapStateToProps = (state) => ({
+  auth: state.auth,
+});
+
+export default connect(mapStateToProps, { register})(Register);

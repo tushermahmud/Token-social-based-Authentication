@@ -11,32 +11,39 @@ import Activate from "./screens/Activate";
 import Login from "./screens/Login";
 import ForgetPassword from "./screens/ForgetPassword";
 import ResetPassword from "./screens/ResetPassword";
+import Home from './screens/Home';
+import store from './redux/store';
+import { Provider } from "react-redux";
+
 ReactDOM.render(
-  <Router>
-    <ToastContainer />
-    <Switch>
-      <Route
-        exact
-        path="/register"
-        render={(props) => <Register {...props} />}
-      />
-      <Route
-        exact
-        path="/users/activate/:token"
-        render={(props) => <Activate {...props} />}
-      />
-      <Route exact path="/Login" render={(props) => <Login {...props} />} />
-      <Route
-        exact
-        path="/users/forget/password"
-        render={(props) => <ForgetPassword {...props} />}
-      />
-      <Route
-        path="/users/password/reset/:token"
-        render={(props) => <ResetPassword {...props} />}
-      />
-    </Switch>
-  </Router>,
+  <Provider store={store}>
+    <Router>
+      <ToastContainer />
+      <Switch>
+        <Route exact path="/" render={(props) => <Home {...props} />} />
+        <Route
+          exact
+          path="/register"
+          render={(props) => <Register {...props} />}
+        />
+        <Route
+          exact
+          path="/users/activate/:token"
+          render={(props) => <Activate {...props} />}
+        />
+        <Route exact path="/Login" render={(props) => <Login {...props} />} />
+        <Route
+          exact
+          path="/users/forget/password"
+          render={(props) => <ForgetPassword {...props} />}
+        />
+        <Route
+          path="/users/password/reset/:token"
+          render={(props) => <ResetPassword {...props} />}
+        />
+      </Switch>
+    </Router>
+  </Provider>,
   document.getElementById("root")
 );
 

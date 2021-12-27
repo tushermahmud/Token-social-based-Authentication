@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import authSvg from '../assests/reset.svg';
 import { ToastContainer, toast } from 'react-toastify';
 import axios from 'axios';
-const ResetPassword = ({ match }) => {
+import { connect } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { resetPassword } from '../redux/actions/authAction';
+const ResetPassword = ({ match,resetPassword }) => {
     const [formData, setFormData] = useState({
-        password1: '',
+        password: '',
         password2: '',
         token: '',
         textChange: 'Submit'
     });
-    const { password1, password2, textChange, token } = formData;
-
+    const { password, password2, textChange, token } = formData;
+    const history = useHistory();
     useEffect(() => {
         let token = match.params.token
         if (token) {
@@ -22,28 +25,11 @@ const ResetPassword = ({ match }) => {
         setFormData({ ...formData, [text]: e.target.value });
     };
     const handleSubmit = e => {
-        console.log(password1, password2)
+        console.log(password, password2)
         e.preventDefault();
-        if ((password1 === password2) && password1 && password2) {
+        if ((password === password2) && password && password2) {
             setFormData({ ...formData, textChange: 'Submitting' });
-            axios
-                .put(`${process.env.REACT_APP_API_URL}/auth/password/reset`, {
-                    newPassword: password1,
-                    resetPasswordLink: token
-                })
-                .then(res => {
-                    console.log(res.data.message)
-                    setFormData({
-                        ...formData,
-                        password1: '',
-                        password2: ''
-                    });
-                    toast.success(res.data.message);
-
-                })
-                .catch(err => {
-                    toast.error('Something is wrong try again');
-                });
+            resetPassword(password, token, history)
         } else {
             toast.error('Passwords don\'t matches');
         }
@@ -67,8 +53,8 @@ const ResetPassword = ({ match }) => {
                                     className='w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white'
                                     type='password'
                                     placeholder='password'
-                                    onChange={handleChange('password1')}
-                                    value={password1}
+                                    onChange={handleChange('password')}
+                                    value={password}
                                 />
                                 <input
                                     className='w-full mt-5 px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white'
@@ -100,4 +86,4 @@ const ResetPassword = ({ match }) => {
     );
 };
 
-export default ResetPassword;
+export default connect(null,{resetPassword})(ResetPassword);

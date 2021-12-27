@@ -6,96 +6,98 @@ import { authenticate, isAuth } from '../helpers/auth';
 import { Link, Redirect } from 'react-router-dom';
 import { GoogleLogin } from 'react-google-login';
 import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props';
-
-const Login = ({ history }) => {
+import {connect} from "react-redux";
+import { login } from '../redux/actions/authAction';
+const Login = ({ history,login }) => {
     const [formData, setFormData] = useState({
         email: '',
-        password1: '',
+        password: '',
         textChange: 'Sign In'
     });
-    const { email, password1, textChange } = formData;
+    const { email, password, textChange } = formData;
     const handleChange = text => e => {
         setFormData({ ...formData, [text]: e.target.value });
     };
 
-    const sendGoogleToken = tokenId => {
-        axios
-            .post(`${process.env.REACT_APP_API_URL}/auth/google-login`, {
-                idToken: tokenId
-            })
-            .then(res => {
-                console.log(res.data);
-                informParent(res);
-            })
-            .catch(error => {
-                console.log('GOOGLE SIGNIN ERROR', error.response);
-            });
-    };
-    const informParent = response => {
-        authenticate(response, () => {
-            isAuth() && isAuth().role === 'admin'
-                ? history.push('/admin')
-                : history.push('/private');
-        });
-    };
+    // const sendGoogleToken = tokenId => {
+    //     axios
+    //         .post(`${process.env.REACT_APP_API_URL}/auth/google-login`, {
+    //             idToken: tokenId
+    //         })
+    //         .then(res => {
+    //             console.log(res.data);
+    //             informParent(res);
+    //         })
+    //         .catch(error => {
+    //             console.log('GOOGLE SIGNIN ERROR', error.response);
+    //         });
+    // };
+    // const informParent = response => {
+    //     authenticate(response, () => {
+    //         isAuth() && isAuth().role === 'admin'
+    //             ? history.push('/admin')
+    //             : history.push('/private');
+    //     });
+    // };
 
-    const sendFacebookToken = (userID, accessToken) => {
-        axios
-            .post(`${process.env.REACT_APP_API_URL}/facebooklogin`, {
-                userID,
-                accessToken
-            })
-            .then(res => {
-                console.log(res.data);
-                informParent(res);
-            })
-            .catch(error => {
-                console.log('GOOGLE SIGNIN ERROR', error.response);
-            });
-    };
-    const responseGoogle = response => {
-        console.log(response);
-        sendGoogleToken(response.tokenId);
-    };
+    // const sendFacebookToken = (userID, accessToken) => {
+    //     axios
+    //         .post(`${process.env.REACT_APP_API_URL}/auth/facebook-login`, {
+    //             userID,
+    //             accessToken
+    //         })
+    //         .then(res => {
+    //             console.log(res.data);
+    //             informParent(res);
+    //         })
+    //         .catch(error => {
+    //             console.log('Faceboook SIGNIN ERROR', error.response);
+    //         });
+    // };
+    // const responseGoogle = response => {
+    //     console.log(response);
+    //     sendGoogleToken(response.tokenId);
+    // };
 
-    const responseFacebook = response => {
-        console.log(response);
-        sendFacebookToken(response.userID, response.accessToken)
-    };
+    // const responseFacebook = response => {
+    //     console.log(response);
+    //     sendFacebookToken(response.userID, response.accessToken)
+    // };
 
     const handleSubmit = e => {
         e.preventDefault();
-        if (email && password1) {
+        if (email && password) {
             setFormData({ ...formData, textChange: 'Submitting' });
-            axios
-                .post(`${process.env.REACT_APP_API_URL}/auth/login`, {
-                    email,
-                    password: password1
-                })
-                .then(res => {
-                    authenticate(res, () => {
-                        setFormData({
-                            ...formData,
-                            email: '',
-                            password1: '',
-                            textChange: 'Submitted'
-                        });
-                        isAuth() && isAuth().role === 'admin'
-                            ? history.push('/admin')
-                            : history.push('/private');
-                        toast.success(`Hey ${res.data.user.name}, Welcome back!`);
-                    });
-                })
-                .catch(err => {
-                    debugger
-                    setFormData({
-                        ...formData,
-                        email: '',
-                        password1: '',
-                        textChange: 'Sign In'
-                    });
-                    toast.error(err.response.data.error);
-                });
+            login({email,password},history)
+            // axios
+            //     .post(`${process.env.REACT_APP_API_URL}/auth/login`, {
+            //         email,
+            //         password: password
+            //     })
+            //     .then(res => {
+            //         authenticate(res, () => {
+            //             setFormData({
+            //                 ...formData,
+            //                 email: '',
+            //                 password: '',
+            //                 textChange: 'Submitted'
+            //             });
+            //             isAuth() && isAuth().role === 'admin'
+            //                 ? history.push('/admin')
+            //                 : history.push('/private');
+            //             toast.success(`Hey ${res.data.user.name}, Welcome back!`);
+            //         });
+            //     })
+            //     .catch(err => {
+            //         debugger
+            //         setFormData({
+            //             ...formData,
+            //             email: '',
+            //             password: '',
+            //             textChange: 'Sign In'
+            //         });
+            //         toast.error(err.response.data.error);
+            //     });
         } else {
             toast.error('Please fill all fields');
         }
@@ -112,7 +114,7 @@ const Login = ({ history }) => {
                         </h1>
                         <div className='w-full flex-1 mt-8 text-indigo-500'>
                             <div className='flex flex-col items-center'>
-                                <GoogleLogin
+                                {/* <GoogleLogin
                                     clientId={`${process.env.REACT_APP_GOOGLE_CLIENT}`}
                                     onSuccess={responseGoogle}
                                     onFailure={responseGoogle}
@@ -129,8 +131,8 @@ const Login = ({ history }) => {
                                             <span className='ml-4'>Sign In with Google</span>
                                         </button>
                                     )}
-                                ></GoogleLogin>
-                                <FacebookLogin
+                                ></GoogleLogin> */}
+                                {/* <FacebookLogin
                                     appId={`${process.env.REACT_APP_FACEBOOK_CLIENT}`}
                                     autoLoad={false}
                                     callback={responseFacebook}
@@ -145,7 +147,7 @@ const Login = ({ history }) => {
                                             <span className='ml-4'>Sign In with Facebook</span>
                                         </button>
                                     )}
-                                />
+                                /> */}
 
                                 <a
                                     className='w-full max-w-xs font-bold shadow-sm rounded-lg py-3
@@ -177,8 +179,8 @@ const Login = ({ history }) => {
                                     className='w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5'
                                     type='password'
                                     placeholder='Password'
-                                    onChange={handleChange('password1')}
-                                    value={password1}
+                                    onChange={handleChange('password')}
+                                    value={password}
                                 />
                                 <button
                                     type='submit'
@@ -188,7 +190,7 @@ const Login = ({ history }) => {
                                     <span className='ml-3'>Sign In</span>
                                 </button>
                                 <Link
-                                    to='/forget/password'
+                                    to='users/forget/password'
                                     className='no-underline hover:underline text-indigo-500 text-md text-right absolute right-0  mt-2'
                                 >
                                     Forget password?
@@ -209,4 +211,4 @@ const Login = ({ history }) => {
     );
 };
 
-export default Login;
+export default connect(null,{login})(Login);

@@ -6,7 +6,9 @@ import jwt from 'jsonwebtoken';
 import { authenticate, isAuth } from '../helpers/auth';
 import { Link, Redirect } from 'react-router-dom';
 import { useHistory } from 'react-router-dom';
-const Activate = ({ match }) => {
+import { activate } from '../redux/actions/authAction';
+import {connect} from "react-redux"
+const Activate = ({ match, activate}) => {
     const [formData, setFormData] = useState({
         name: '',
         token: '',
@@ -15,7 +17,6 @@ const Activate = ({ match }) => {
     const history = useHistory();
 
     useEffect(() => {
-        debugger
         let token = match.params.token;
         let { name } = jwt.decode(token);
 
@@ -29,25 +30,7 @@ const Activate = ({ match }) => {
 
     const handleSubmit = e => {
         e.preventDefault();
-
-        axios
-            .post(`${process.env.REACT_APP_API_URL}/auth/activation`, {
-                token
-            })
-            .then(res => {
-                setFormData({
-                    ...formData,
-                    show: false
-                });
-                console.log(res)
-
-                toast.success(res.data.message);
-                history.push("/login");
-            })
-            .catch(err => {
-
-                toast.error(err.response.data.errors);
-            });
+        activate(token,history)
     };
 
     return (
@@ -105,4 +88,4 @@ const Activate = ({ match }) => {
     );
 };
 
-export default Activate;
+export default connect(null,{activate})(Activate);

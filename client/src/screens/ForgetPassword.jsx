@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import authSvg from '../assests/forget.svg';
 import { ToastContainer, toast } from 'react-toastify';
 import axios from 'axios';
-
-const ForgetPassword = ({ history }) => {
+import { connect } from 'react-redux';
+import { forgotPassword } from '../redux/actions/authAction';
+const ForgetPassword = ({ history,forgotPassword }) => {
     const [formData, setFormData] = useState({
         email: '',
         textChange: 'Submit'
@@ -15,24 +16,7 @@ const ForgetPassword = ({ history }) => {
     const handleSubmit = e => {
         e.preventDefault();
         if (email) {
-            setFormData({ ...formData, textChange: 'Submitting' });
-            axios
-                .put(`${process.env.REACT_APP_API_URL}/auth/forgot-password`, {
-                    email
-                })
-                .then(res => {
-
-                    setFormData({
-                        ...formData,
-                        email: '',
-                    });
-                    toast.success(`Please check your email`);
-
-                })
-                .catch(err => {
-                    console.log(err.response)
-                    toast.error(err.response.data.error);
-                });
+            forgotPassword(email);
         } else {
             toast.error('Please fill all fields');
         }
@@ -82,4 +66,4 @@ const ForgetPassword = ({ history }) => {
     );
 };
 
-export default ForgetPassword;
+export default connect(null,{forgotPassword})(ForgetPassword);

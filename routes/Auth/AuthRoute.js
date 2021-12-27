@@ -8,6 +8,7 @@ const {
   forgetPasswordController,
   resetPassword,
   googleLoginController,
+  facebookLoginController,
 } = require("../../controllers/AuthController");
 
 router.post("/login", LoginController);
@@ -50,6 +51,8 @@ router.put(
 
 router.put("/password/reset", resetPassword);
 
-router.post("/google-login",googleLoginController)
+router.post("/google-login", googleLoginController);
+
+router.post("/facebook-login", facebookLoginController);
 
 module.exports = router;

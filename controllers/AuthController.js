@@ -6,7 +6,11 @@ var { body, check, validationResult } = require("express-validator");
 const sgMail = require("@sendgrid/mail");
 const bycrypt = require("bcrypt");
 const gravatar = require("gravatar");
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
+const fetch = require("node-fetch");
+
+
+
 require("dotenv").config({
   path: "./config/config.env",
 });
@@ -36,7 +40,7 @@ const LoginController = async(req, res) => {
     if(user){
       let matched = await bycrypt.compare(password,user.password);
           if (!matched) {
-            return res.status(401).json({
+            return res.json({
               error: "The email or password is wrong!",
             });
           } else {
@@ -52,7 +56,7 @@ const LoginController = async(req, res) => {
               },
               (err,token)=>{
                 if(err){
-                  return res.status(500).json({
+                  return res.json({
                     error:"Invalid token"
                   })
                 }else{
@@ -69,6 +73,7 @@ const LoginController = async(req, res) => {
                   };
                   return res.status(200).json({
                     token: token,
+                    message:"You have successfully logged in",
                     user: sendUser,
                   });
                 }
@@ -76,7 +81,7 @@ const LoginController = async(req, res) => {
             )
           }
     }else{
-      return res.status(404).json({
+      return res.json({
         error:"User not found!"
       })
     }
@@ -101,7 +106,7 @@ const RegisterController = async (req, res) => {
     const { email, password, name, mobile } = req.body;
     let user = await UserModel.findOne({ email });
     if (user) {
-      res.status(400).json({
+      res.json({
         error: "user already exists",
       });
     } else {
@@ -186,7 +191,14 @@ const activationController = async (req, res) => {
             error: "Token Expired.Please sign up again",
           });
         } else {
+
           const { name, email, mobile, password, avater } = jwt.decode(token);
+          let userFound = await UserModel.findOne({ email });
+          if (userFound) {
+            return res.json({
+              error: "user already exists",
+            });
+          }
           const user = new UserModel({
             name,
             email,
@@ -216,7 +228,7 @@ const activationController = async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({
-      error: error,
+      error: error.message,
     });
   }
 };
@@ -345,10 +357,11 @@ const resetPassword=async(req,res)=>{
   }
 }
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleLoginController=async(req,res)=>{
   try {
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
     const { idToken } = req.body;
     //get the token from the request
     //verify the token
@@ -399,6 +412,7 @@ const googleLoginController=async(req,res)=>{
                   mobile:"",
                   password: hashedPassword,
                   avater: picture,
+                  role:"normal"
                 });
                 await user.save((err, userData) => {
                   if(err){
@@ -428,6 +442,90 @@ const googleLoginController=async(req,res)=>{
   }
 }
 
+const facebookLoginController=async(req,res)=>{
+  const { userID, accessToken } = req.body;
+  const url = `https://graph.facebook.com/v2.11/${userID}/?fields=id,name,email,picture&access_token=${accessToken}`;
+
+  try {
+    return (
+    fetch(url, {
+      method: 'GET'
+    })
+      .then(response => response.json())
+      // .then(response => console.log(response))
+      .then(response => {
+        const {name,email,picture}=response;
+        UserModel.findOne({ email: email }).exec((err, user) => {
+          //find if the email already exists
+          if (user) {
+            const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+              expiresIn: "7d",
+            });
+            let { name, _id, email, role, time, createdAt } = user;
+            let sendUser = {
+              name: name,
+              id: _id,
+              email: email,
+              role: role,
+              mobile: user.mobile ? user.mobile : "",
+              avater: picture,
+              time: time,
+              createdAt: createdAt,
+            };
+
+            //sending response to client side with token and user
+            return res.status(200).json({
+              token: token,
+              user: sendUser,
+            });
+          } else {
+            //user doesnot exist then we will generate a password for them and let the login
+            const avater = gravatar.url(email, {
+              s: "",
+              r: "",
+              d: "",
+            });
+            let password = email;
+            bycrypt.hash(password, 11, async (err, hashedPassword) => {
+              if (err) {
+                res.json(err);
+              }
+              const user = new UserModel({
+                name,
+                email,
+                mobile: "",
+                password: hashedPassword,
+                avater: picture.url,
+                role:"normal"
+              });
+              await user.save((err, userData) => {
+                if (err) {
+                  return res.status(400).json({
+                    error: err.message,
+                  });
+                } else {
+                  const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+                    expiresIn: "7d",
+                  });
+                  return res.status(200).json({
+                    token: token,
+                    user: userData,
+                  });
+                }
+              });
+            });
+          }
+        });
+      })
+    );
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message,
+    });
+  }
+}
+
+
 module.exports = {
   LoginController,
   activationController,
@@ -435,4 +533,5 @@ module.exports = {
   forgetPasswordController,
   resetPassword,
   googleLoginController,
+  facebookLoginController,
 };
