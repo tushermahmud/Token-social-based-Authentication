@@ -19,6 +19,8 @@
     "react-toastify": "^8.1.0",
     "redux": "^4.1.2",
     "redux-thunk": "^2.4.1",
+    "socket.io-client": "^4.4.0",
+    "timeago.js": "^4.0.2",
     "web-vitals": "^1.1.2"
   },
   "scripts": {

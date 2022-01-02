@@ -7,6 +7,58 @@ import {
 } from "../types/types";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { getCookie,removeCookie,removeLocalStorage } from "../../helpers/auth";
+
+
+//load the authenticated user
+const loadUser = (history) => async (dispatch) => {
+  try {
+    dispatch({
+      type: LOADING,
+      payload: true,
+    });
+    const token= getCookie("token");
+    console.log(token !== undefined);
+    if (token !== undefined) {
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_URL}/user/my-profile`,
+        {
+          headers: {
+            Authorization: token,
+          },
+        }
+      );
+      if (!response.data.error) {
+        dispatch({
+          type: USER_LOADED,
+          payload: response.data,
+        });
+        dispatch({
+          type: LOADING,
+          payload: false,
+        });
+      } else {
+        toast.error(response.data.error);
+        removeLocalStorage("user");
+        removeCookie("token");
+        dispatch({
+          type: LOADING,
+          payload: false,
+        });
+      }
+    } else {
+      history.push("/login");
+    }
+        
+  } catch (error) {
+    // toast.error(error.message);
+    dispatch({
+      type: LOADING,
+      payload: true,
+    });
+  }
+};
+
 
 //register the user action
 const register =
@@ -181,4 +233,4 @@ const resetPassword=(password,token,history)=>async(dispatch)=>{
 
 
 
-export { register, activate, login, forgotPassword, resetPassword };
+export { register, activate, login, forgotPassword, resetPassword, loadUser };

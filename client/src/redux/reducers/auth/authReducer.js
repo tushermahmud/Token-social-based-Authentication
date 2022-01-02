@@ -25,10 +25,8 @@ const registration = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         isAuthenticated: true,
-        loading: false,
+        loading:false,
         user: action.payload,
-        IsEmailVerified: action.payload.IsEmailVerified,
-        IsMobleVerified: action.payload.IsMobileVerified,
       };
     case LOGIN_SUCCESS:
       setCookie("token",action.payload.token);

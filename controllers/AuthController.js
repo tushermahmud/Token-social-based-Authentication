@@ -365,76 +365,77 @@ const googleLoginController=async(req,res)=>{
     const { idToken } = req.body;
     //get the token from the request
     //verify the token
-    client
-      .verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
-      .then((response) => {
-        const { email_verified, email, name,picture } = response.payload;
-        if (email_verified) {
-           UserModel.findOne({ email: email }).exec((err, user) => {
-            //find if the email already exists
-            if (user) {
-              const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
-                expiresIn: "7d",
-              });
-              let { name, _id, email, role, time, createdAt } =
-                user;
-              let sendUser = {
-                name: name,
-                id: _id,
-                email: email,
-                role: role,
-                mobile: user.mobile?user.mobile:"",
-                avater: picture,
-                time: time,
-                createdAt: createdAt,
-              };
-
-              //sending response to client side with token and user
-              return res.status(200).json({
-                token: token,
-                user: sendUser,
-              });
-            } else {
-              //user doesnot exist then we will generate a password for them and let the login
-              const avater = gravatar.url(email, {
-                s: "",
-                r: "",
-                d: "",
-              });
-              let password= email;
-              bycrypt.hash(password, 11, async (err, hashedPassword) => {
-                if (err) {
-                  res.json(err);
-                }
-                const user = new UserModel({
-                  name,
-                  email,
-                  mobile:"",
-                  password: hashedPassword,
+    if(idToken){
+      client
+        .verifyIdToken({ idToken, audience: process.env.GOOGLE_CLIENT_ID })
+        .then((response) => {
+          const { email_verified, email, name, picture } = response.payload;
+          if (email_verified) {
+            UserModel.findOne({ email: email }).exec((err, user) => {
+              //find if the email already exists
+              if (user) {
+                const token = jwt.sign({ id: user._id }, "MYSECRETTOKEN", {
+                  expiresIn: "7d",
+                });
+                let { name, _id, email, role, time, createdAt } = user;
+                let sendUser = {
+                  name: name,
+                  id: _id,
+                  email: email,
+                  role: role,
+                  mobile: user.mobile ? user.mobile : "",
                   avater: picture,
-                  role:"normal"
+                  time: time,
+                  createdAt: createdAt,
+                };
+
+                //sending response to client side with token and user
+                return res.status(200).json({
+                  token: token,
+                  user: sendUser,
                 });
-                await user.save((err, userData) => {
-                  if(err){
-                    return res.status(400).json({
-                      error:err.message
-                    })
-                  }else{
-                    const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
-                      expiresIn: "7d",
-                    });
-                    return res.status(200).json({
-                      token: token,
-                      user: userData,
-                    });
+              } else {
+                //user doesnot exist then we will generate a password for them and let the login
+                const avater = gravatar.url(email, {
+                  s: "",
+                  r: "",
+                  d: "",
+                });
+                let password = email;
+                bycrypt.hash(password, 11, async (err, hashedPassword) => {
+                  if (err) {
+                    res.json(err);
                   }
+                  const user = new UserModel({
+                    name,
+                    email,
+                    mobile: "",
+                    password: hashedPassword,
+                    avater: picture,
+                    role: "normal",
+                  });
+                  await user.save((err, userData) => {
+                    if (err) {
+                      return res.status(400).json({
+                        error: err.message,
+                      });
+                    } else {
+                      const token = jwt.sign({ id: user._id }, "MYSECRETTOKEN", {
+                        expiresIn: "7d",
+                      });
+                      return res.status(200).json({
+                        token: token,
+                        user: userData,
+                      });
+                    }
+                  });
                 });
-                
-              });
-            }
-          });
-        }
-      });
+              }
+            });
+          }
+        });
+    }
+    
   } catch (error) {
     return res.status(500).json({
       error:error.message
@@ -458,7 +459,9 @@ const facebookLoginController=async(req,res)=>{
         UserModel.findOne({ email: email }).exec((err, user) => {
           //find if the email already exists
           if (user) {
-            const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+            console.log(user);
+
+            const token = jwt.sign({ id: user._id }, "MYSECRETTOKEN", {
               expiresIn: "7d",
             });
             let { name, _id, email, role, time, createdAt } = user;
@@ -504,7 +507,7 @@ const facebookLoginController=async(req,res)=>{
                     error: err.message,
                   });
                 } else {
-                  const token = jwt.sign({ _id: user._id }, "MYSECRETTOKEN", {
+                  const token = jwt.sign({ id: user._id }, "MYSECRETTOKEN", {
                     expiresIn: "7d",
                   });
                   return res.status(200).json({
